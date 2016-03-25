@@ -1,0 +1,21 @@
+<component name="libraryTable">
+  <library name="jars">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/jars/slick-util.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jars/lwjgl.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jars/lwjgl_util.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <NATIVE>
+      <root url="file://$PROJECT_DIR$/lib/natives-win" />
+      <root url="file://$PROJECT_DIR$/lib/natives-win" />
+      <root url="file://$PROJECT_DIR$/lib/natives-win" />
+      <root url="file://$PROJECT_DIR$/lib/natives-win" />
+      <root url="file://$PROJECT_DIR$/lib/natives-win" />
+      <root url="file://$PROJECT_DIR$/lib/natives-win" />
+      <root url="file://$PROJECT_DIR$/lib/natives-win" />
+      <root url="file://$PROJECT_DIR$/lib/natives-win" />
+    </NATIVE>
+    <SOURCES />
+  </library>
+</component>

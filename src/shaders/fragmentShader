@@ -1,0 +1,43 @@
+#version 410 core
+
+in vec2 UV;
+in vec3 norm;
+in vec3 vertToLight;
+in vec3 vertToCamera;
+in float visibility;
+
+uniform sampler2D textureSampler;
+uniform vec3 lightColour;
+uniform float shineDamper;
+uniform float reflectivity;
+uniform vec3 skyColour;
+
+out vec4 fragColor;
+
+void main(void){
+
+    vec3 unitNormal = normalize(norm);
+    vec3 lDir = normalize(vertToLight);
+
+    float nDotL = max(dot(unitNormal, lDir), 0.1);
+
+    vec3 diffuse = lightColour * nDotL;
+
+    vec3 unitVectorToCamera = normalize(vertToCamera);
+    vec3 lightDirection = -lDir;
+    vec3 reflectedLight = reflect(lightDirection, unitNormal);
+    vec3 halfVector = normalize(vertToCamera + lDir);
+
+    //float specularFactor = max(dot(reflectedLight, unitVectorToCamera),0.0);
+    float specularFactor = max(dot(unitNormal, halfVector),0.0);
+    float dampedFactor = pow(specularFactor, shineDamper);
+    vec3 finalSpecular = dampedFactor * lightColour * reflectivity;
+
+    vec4 textureColour = texture(textureSampler, UV);
+    if(textureColour.a < 0.5){
+        discard;
+    }
+
+    fragColor = (vec4(diffuse, 1.0f) + vec4(finalSpecular, 1.0)) * textureColour;
+    fragColor = mix(vec4(skyColour,1.0), fragColor, visibility);
+}

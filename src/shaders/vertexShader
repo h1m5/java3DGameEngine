@@ -1,0 +1,45 @@
+#version 410 core
+
+in vec3 position;
+in vec2 textureCoords;
+in vec3 normal;
+
+out vec2 UV;
+out vec3 norm;
+out vec3 vertToLight; // vector pointing from vertex towards the light source
+out vec3 vertToCamera; // vector pointing from vertex to camera;
+out float visibility;
+
+uniform mat4 mMatrix;
+uniform mat4 pMatrix;
+uniform mat4 vMatrix;
+uniform vec3 lightPosition;
+uniform vec3 cameraPosition;
+uniform bool useFakeLighting;
+
+const float density = 0.0035;
+const float gradient = 5.0;
+
+void main(void){
+
+    gl_Position = pMatrix * vMatrix * mMatrix * vec4(position, 1.0);
+
+    vec4 worldPosition = mMatrix * vec4(position, 1.0f);
+    vec4 positionRelativeToCam = vMatrix * worldPosition;
+    UV = textureCoords;
+
+    vec3 actualNormal = normal;
+    if(useFakeLighting == true){
+        actualNormal = vec3(0.0, 1.0, 0.0);
+    }
+
+    vec4 n = mMatrix * vec4(actualNormal, 0.0);
+    norm = n.xyz;
+    vertToLight = lightPosition - worldPosition.xyz;
+    //vertToCamera = (inverse(vMatrix) * vec4(0.0, 0.0, 0.0, 1.0)).xyz - worldPosition.xyz;
+    vertToCamera = cameraPosition - worldPosition.xyz;
+
+    float distance = length(positionRelativeToCam.xyz);
+    visibility = exp(-pow((distance*density),gradient));
+    visibility = clamp(visibility, 0.0, 1.0);
+}
