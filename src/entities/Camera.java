@@ -3,6 +3,7 @@ package entities;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.util.vector.Vector3f;
+import renderEngine.DisplayManager;
 
 /**
  * Created by HimsDLee on 03/03/16.
@@ -35,6 +36,7 @@ public class Camera {
         float verticalDistance = calculateVerticalDistance();
         calculateCameraPosition(horizontalDistance, verticalDistance);
         this.yaw = 180 - (player.getRotY() + angleAroundPlayer);
+//        System.out.println(player.getPosition().x);
     }
 
     public Vector3f getPosition() {

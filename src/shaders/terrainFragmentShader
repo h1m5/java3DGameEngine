@@ -51,4 +51,5 @@ void main(void){
 
     fragColor = (vec4(diffuse, 1.0f) + vec4(finalSpecular, 1.0)) * totalColour;
     fragColor = mix(vec4(skyColour,1.0), fragColor, visibility);
+    //fragColor = blendMapColour;
 }

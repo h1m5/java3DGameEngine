@@ -46,7 +46,7 @@ public class MainGameLoop {
         staticGrassModel.getTexture().setHasTransparency(true);
         staticGrassModel.getTexture().setUseFakeLighting(true);
 
-        Light light = new Light(new Vector3f(0, 10, 0), new Vector3f(1, 1, 1));
+        Light light = new Light(new Vector3f(0, 100, 0), new Vector3f(1, 1, 1));
 
         TerrainTexture backgroundTexture = new TerrainTexture(loader.loadTexture("grassy"));
         TerrainTexture rTexture = new TerrainTexture(loader.loadTexture("dirt"));
@@ -56,10 +56,10 @@ public class MainGameLoop {
         TerrainTexturePack texturePack = new TerrainTexturePack(backgroundTexture, rTexture, gTexture, bTexture);
 
         TerrainTexture blendMap = new TerrainTexture(loader.loadTexture("blendMap"));
-        Terrain terrain1 = new Terrain(0, 0, loader, texturePack, blendMap);
-        Terrain terrain2 = new Terrain(1, 0, loader, texturePack, blendMap);
-        Terrain terrain3 = new Terrain(1, 1, loader, texturePack, blendMap);
-        Terrain terrain4 = new Terrain(0, 1, loader, texturePack, blendMap);
+        Terrain terrain1 = new Terrain(0, 0, loader, texturePack, blendMap, "heightmap");
+        Terrain terrain2 = new Terrain(-1, 0, loader, texturePack, blendMap, "heightmap");
+        Terrain terrain3 = new Terrain(-1, -1, loader, texturePack, blendMap, "heightmap");
+        Terrain terrain4 = new Terrain(0, -1, loader, texturePack, blendMap, "heightmap");
 
         //player
         RawModel bunnyModel = OBJLoader.loadObjModel("bunny", loader);
@@ -71,18 +71,38 @@ public class MainGameLoop {
 
         List<Entity> trees = new ArrayList<Entity>();
         Random random = new Random();
-        for(int i = 0; i<200; i++){
-            float x = random.nextFloat() * 100 - 50;
+        int min = -300; int max = 300;
+        int n = min - max + 1;
+        for(int i = 0; i<500; i++){
+            float x = (float)random.nextInt((max - min) + 1) + min;
+            float z = (float)random.nextInt((max - min) + 1) + min;
             float y = 0;
-            float z = random.nextFloat() * -300;
+            if(x >= 0 && z >= 0){
+                y = terrain1.getHeightOfTerrain(x, z);
+            } else if (x < 0 && z >= 0){
+                y = terrain2.getHeightOfTerrain(x, z);
+            } else if (x <= 0 && z <= 0){
+                y = terrain3.getHeightOfTerrain(x, z);
+            } else if (x >= 0 && z < 0){
+                y = terrain4.getHeightOfTerrain(x, z);
+            }
             trees.add(new Entity(staticModel, new Vector3f(x,y,z), 0, random.nextFloat()*180f, 0f, 1f));
         }
 
         List<Entity> grass = new ArrayList<Entity>();
-        for(int i = 0; i<200; i++){
-            float x = random.nextFloat() * 100 - 50;
+        for(int i = 0; i<500; i++){
+            float x = (float)random.nextInt((max - min) + 1) + min;
+            float z = (float)random.nextInt((max - min) + 1) + min;
             float y = 0;
-            float z = random.nextFloat() * -300;
+            if(x >= 0 && z >= 0){
+                y = terrain1.getHeightOfTerrain(x, z);
+            } else if (x < 0 && z >= 0){
+                y = terrain2.getHeightOfTerrain(x, z);
+            } else if (x <= 0 && z <= 0){
+                y = terrain3.getHeightOfTerrain(x, z);
+            } else if (x >= 0 && z < 0){
+                y = terrain4.getHeightOfTerrain(x, z);
+            }
             grass.add(new Entity(staticGrassModel, new Vector3f(x, y, z), 0, random.nextFloat() * 180f, 0f, 0.5f));
         }
 
@@ -90,7 +110,16 @@ public class MainGameLoop {
         while(!Display.isCloseRequested()){
             entity.increaseRotation(0, 1, 0);
             camera.move();
-            player.move();
+
+            if(player.getPosition().x >= 0 && player.getPosition().z >= 0){
+                player.move(terrain1);
+            } else if (player.getPosition().x < 0 && player.getPosition().z >= 0){
+                player.move(terrain2);
+            } else if (player.getPosition().x <= 0 && player.getPosition().z <= 0){
+                player.move(terrain3);
+            } else if (player.getPosition().x >= 0 && player.getPosition().z < 0){
+                player.move(terrain4);
+            }
 
             renderer.processEntity(player);
             renderer.processTerrain(terrain1);
