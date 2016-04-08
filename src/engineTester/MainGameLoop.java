@@ -61,8 +61,19 @@ public class MainGameLoop {
             //entities.add(new Entity(texturedModel, new Vector3f(x, y, z), 0, random.nextFloat() * 180f, 0f, scale));
             entities.add(new Entity(texturedModel, random.nextInt(numberOfTextureRows*numberOfTextureRows), new Vector3f(x,y,z), 0, random.nextFloat() * 180f, 0f, scale));
         }
-
         return entities;
+    }
+
+    public static TexturedModel generateSingleTexturedModel(String modelName, String textureName, Loader loader, boolean hasTransparency, boolean useFakeLighting,
+                                                            float shineDamper, float reflectivity){
+        RawModel model = OBJLoader.loadObjModel(modelName, loader);
+        ModelTexture texture = new ModelTexture(loader.loadTexture(textureName));
+        texture.setUseFakeLighting(useFakeLighting);
+        texture.setHasTransparency(hasTransparency);
+        texture.setReflectivity(reflectivity);
+        texture.setShineDamper(shineDamper);
+
+        return new TexturedModel(model, texture);
     }
 
     public static void main(String[] args){
@@ -90,12 +101,18 @@ public class MainGameLoop {
         //lights
         List<Light> lights = new ArrayList<Light>();
         Light sun = new Light(new Vector3f(0, 100, 0), new Vector3f(0.3f, 0.3f, 0.3f));
-        Light light1 = new Light(new Vector3f(10, 3, 0), new Vector3f(1,1,0), new Vector3f(1, 0.01f, 0.002f));
-        Light light2 = new Light(new Vector3f(-10, 3, 0), new Vector3f(1,0,1), new Vector3f(1, 0.01f, 0.002f));
+        Light light1 = new Light(new Vector3f(10, 15, 0), new Vector3f(1,1,0), new Vector3f(1, 0.01f, 0.002f));
+        Light light2 = new Light(new Vector3f(-10, 15, 0), new Vector3f(1,0,1), new Vector3f(1, 0.01f, 0.002f));
         lights.add(sun);
         lights.add(light1);
         lights.add(light2);
 
+        List<Entity> entities = new ArrayList<Entity>();
+        TexturedModel lamp = generateSingleTexturedModel("lamp", "lamp", loader, false, true, 20, 1);
+        entities.add(new Entity(lamp, new Vector3f(10,0,0),0,0,0,1));
+        entities.add(new Entity(lamp, new Vector3f(-10,0,0),0,0,0,1));
+
+        //terrain
         TerrainTexture backgroundTexture = new TerrainTexture(loader.loadTexture("grassy"));
         TerrainTexture rTexture = new TerrainTexture(loader.loadTexture("dirt"));
         TerrainTexture gTexture = new TerrainTexture(loader.loadTexture("pinkFlowers"));
@@ -153,6 +170,10 @@ public class MainGameLoop {
             renderer.processTerrain(terrain3);
             renderer.processTerrain(terrain4);
 //            renderer.processEntity(entity);
+
+            for (Entity e: entities){
+                renderer.processEntity(e);
+            }
 
             for (Entity e:trees){
                 renderer.processEntity(e);

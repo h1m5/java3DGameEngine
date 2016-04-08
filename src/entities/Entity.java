@@ -23,14 +23,14 @@ public class Entity {
         this.scale = scale;
     }
 
-    public Entity(TexturedModel model, int index, Vector3f position, float rotX, float rotY, float rotZ, float scale) {
+    public Entity(TexturedModel model, int textureIndex, Vector3f position, float rotX, float rotY, float rotZ, float scale) {
         this.model = model;
         this.position = position;
         this.rotX = rotX;
         this.rotY = rotY;
         this.rotZ = rotZ;
         this.scale = scale;
-        this.textureIndex = index;
+        this.textureIndex = textureIndex;
     }
 
     public float getTextureXOffset(){
