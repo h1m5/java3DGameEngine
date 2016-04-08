@@ -1,13 +1,17 @@
 package engineTester;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import entities.Camera;
 import entities.Entity;
 import entities.Light;
 import entities.Player;
+import guis.GuiRenderer;
+import guis.GuiTexture;
 import models.TexturedModel;
 import objConverter.ModelData;
 import objConverter.OBJFileLoader;
 import org.lwjgl.opengl.Display;
+import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.vector.Vector3f;
 import renderEngine.*;
 import models.RawModel;
@@ -24,6 +28,43 @@ import java.util.Random;
  * Created by HimsDLee on 29/02/16.
  */
 public class MainGameLoop {
+    public static List<Entity> generateMultipleModels(String modelName, String textureName, int numberOfTextureRows,
+                                                      Loader loader, List<Terrain> terrains,
+                                                      float scale, boolean hasTransparency, boolean useFakeLighting,
+                                                      float shineDamper, float reflectivity){
+        RawModel model = OBJLoader.loadObjModel(modelName, loader);
+        ModelTexture texture = new ModelTexture(loader.loadTexture(textureName));
+        TexturedModel texturedModel = new TexturedModel(model, texture);
+        texture.setNumberOfRows(numberOfTextureRows);
+        texture.setShineDamper(shineDamper);
+        texture.setReflectivity(reflectivity);
+        texture.setHasTransparency(hasTransparency);
+        texture.setUseFakeLighting(useFakeLighting);
+
+        Random random = new Random();
+        int min = -300; int max = 300;
+        int n = min - max + 1;
+        List<Entity> entities = new ArrayList<Entity>();
+        for(int i = 0; i<500; i++){
+            float x = (float)random.nextInt((max - min) + 1) + min;
+            float z = (float)random.nextInt((max - min) + 1) + min;
+            float y = 0;
+            if(x >= 0 && z >= 0){
+                y = terrains.get(0).getHeightOfTerrain(x, z);
+            } else if (x < 0 && z >= 0){
+                y = terrains.get(1).getHeightOfTerrain(x, z);
+            } else if (x <= 0 && z <= 0){
+                y = terrains.get(2).getHeightOfTerrain(x, z);
+            } else if (x >= 0 && z < 0){
+                y = terrains.get(3).getHeightOfTerrain(x, z);
+            }
+            //entities.add(new Entity(texturedModel, new Vector3f(x, y, z), 0, random.nextFloat() * 180f, 0f, scale));
+            entities.add(new Entity(texturedModel, random.nextInt(numberOfTextureRows*numberOfTextureRows), new Vector3f(x,y,z), 0, random.nextFloat() * 180f, 0f, scale));
+        }
+
+        return entities;
+    }
+
     public static void main(String[] args){
 
         DisplayManager.createDisplay();
@@ -46,7 +87,14 @@ public class MainGameLoop {
         staticGrassModel.getTexture().setHasTransparency(true);
         staticGrassModel.getTexture().setUseFakeLighting(true);
 
-        Light light = new Light(new Vector3f(0, 100, 0), new Vector3f(1, 1, 1));
+        //lights
+        List<Light> lights = new ArrayList<Light>();
+        Light sun = new Light(new Vector3f(0, 100, 0), new Vector3f(0.3f, 0.3f, 0.3f));
+        Light light1 = new Light(new Vector3f(10, 3, 0), new Vector3f(1,1,0), new Vector3f(1, 0.01f, 0.002f));
+        Light light2 = new Light(new Vector3f(-10, 3, 0), new Vector3f(1,0,1), new Vector3f(1, 0.01f, 0.002f));
+        lights.add(sun);
+        lights.add(light1);
+        lights.add(light2);
 
         TerrainTexture backgroundTexture = new TerrainTexture(loader.loadTexture("grassy"));
         TerrainTexture rTexture = new TerrainTexture(loader.loadTexture("dirt"));
@@ -61,6 +109,11 @@ public class MainGameLoop {
         Terrain terrain3 = new Terrain(-1, -1, loader, texturePack, blendMap, "heightmap");
         Terrain terrain4 = new Terrain(0, -1, loader, texturePack, blendMap, "heightmap");
 
+        List<Terrain> terrains = new ArrayList<Terrain>();
+        terrains.add(terrain1);
+        terrains.add(terrain2);
+        terrains.add(terrain3);
+        terrains.add(terrain4);
         //player
         RawModel bunnyModel = OBJLoader.loadObjModel("bunny", loader);
         TexturedModel stanfordBuny = new TexturedModel(bunnyModel, new ModelTexture(loader.loadTexture("white")));
@@ -69,42 +122,15 @@ public class MainGameLoop {
 
         Camera camera = new Camera(player);
 
-        List<Entity> trees = new ArrayList<Entity>();
-        Random random = new Random();
-        int min = -300; int max = 300;
-        int n = min - max + 1;
-        for(int i = 0; i<500; i++){
-            float x = (float)random.nextInt((max - min) + 1) + min;
-            float z = (float)random.nextInt((max - min) + 1) + min;
-            float y = 0;
-            if(x >= 0 && z >= 0){
-                y = terrain1.getHeightOfTerrain(x, z);
-            } else if (x < 0 && z >= 0){
-                y = terrain2.getHeightOfTerrain(x, z);
-            } else if (x <= 0 && z <= 0){
-                y = terrain3.getHeightOfTerrain(x, z);
-            } else if (x >= 0 && z < 0){
-                y = terrain4.getHeightOfTerrain(x, z);
-            }
-            trees.add(new Entity(staticModel, new Vector3f(x,y,z), 0, random.nextFloat()*180f, 0f, 1f));
-        }
+        List<Entity> trees = generateMultipleModels("lowPolyTree", "lowPolyTree", 1, loader, terrains, 0.2f, false, false, 20, 0);
+        List<Entity> grass = generateMultipleModels("grassModel", "grassTexture", 1, loader, terrains, 0.5f, true, true, 0, 0);
+        List<Entity> ferns = generateMultipleModels("fern", "fern", 2, loader, terrains, 0.5f, true, true, 0, 0);
 
-        List<Entity> grass = new ArrayList<Entity>();
-        for(int i = 0; i<500; i++){
-            float x = (float)random.nextInt((max - min) + 1) + min;
-            float z = (float)random.nextInt((max - min) + 1) + min;
-            float y = 0;
-            if(x >= 0 && z >= 0){
-                y = terrain1.getHeightOfTerrain(x, z);
-            } else if (x < 0 && z >= 0){
-                y = terrain2.getHeightOfTerrain(x, z);
-            } else if (x <= 0 && z <= 0){
-                y = terrain3.getHeightOfTerrain(x, z);
-            } else if (x >= 0 && z < 0){
-                y = terrain4.getHeightOfTerrain(x, z);
-            }
-            grass.add(new Entity(staticGrassModel, new Vector3f(x, y, z), 0, random.nextFloat() * 180f, 0f, 0.5f));
-        }
+        List<GuiTexture> guis = new ArrayList<GuiTexture>();
+        GuiTexture gui = new GuiTexture(loader.loadTexture("lowPolyTree"), new Vector2f(0.5f, 0.5f), new Vector2f(0.1f, 0.1f));
+        guis.add(gui);
+
+        GuiRenderer guiRenderer = new GuiRenderer(loader);
 
         MasterRenderer renderer = new MasterRenderer();
         while(!Display.isCloseRequested()){
@@ -135,10 +161,16 @@ public class MainGameLoop {
                 renderer.processEntity(e);
             }
 
-            renderer.render(light, camera);
+            for (Entity e:ferns){
+                renderer.processEntity(e);
+            }
+
+            renderer.render(lights, camera);
+            guiRenderer.render(guis);
             DisplayManager.updateDisplay();
         }
 
+        guiRenderer.cleanUp();
         renderer.cleanUp();
         loader.cleanUp();
         DisplayManager.closeDisplay();

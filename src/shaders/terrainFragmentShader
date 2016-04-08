@@ -2,7 +2,7 @@
 
 in vec2 UV;
 in vec3 norm;
-in vec3 vertToLight;
+in vec3 vertToLight[4];
 in vec3 vertToCamera;
 in float visibility;
 
@@ -12,7 +12,8 @@ uniform sampler2D gTexture;
 uniform sampler2D bTexture;
 uniform sampler2D blendMap;
 
-uniform vec3 lightColour;
+uniform vec3 lightColour[4];
+uniform vec3 attenuation[4];
 uniform float shineDamper;
 uniform float reflectivity;
 uniform vec3 skyColour;
@@ -33,23 +34,31 @@ void main(void){
     vec4 totalColour = bgTextureColour + rTextureColour + gTextureColour + bTextureColour;
 
     vec3 unitNormal = normalize(norm);
-    vec3 lDir = normalize(vertToLight);
 
-    float nDotL = max(dot(unitNormal, lDir), 0.1);
+    vec3 totalDiffuse = vec3(0.0);
+    vec3 totalSpecular = vec3(0.0);
 
-    vec3 diffuse = lightColour * nDotL;
+    for(int i=0; i<4; i++){
+        float distance = length(vertToLight[i]);
+        float attFactor = attenuation[i].x + attenuation[i].y * distance + (attenuation[i].z * distance * distance);
+        vec3 lDir = normalize(vertToLight[i]);
+        float nDotL = max(dot(unitNormal, lDir), 0.1);
 
-    vec3 unitVectorToCamera = normalize(vertToCamera);
-    vec3 lightDirection = -lDir;
-    vec3 reflectedLight = reflect(lightDirection, unitNormal);
-    vec3 halfVector = normalize(vertToCamera + lDir);
+        vec3 unitVectorToCamera = normalize(vertToCamera);
+        vec3 lightDirection = -lDir;
+        vec3 reflectedLight = reflect(lightDirection, unitNormal);
+        vec3 halfVector = normalize(vertToCamera + lDir);
 
-    //float specularFactor = max(dot(reflectedLight, unitVectorToCamera),0.0);
-    float specularFactor = max(dot(unitNormal, halfVector),0.0);
-    float dampedFactor = pow(specularFactor, shineDamper);
-    vec3 finalSpecular = dampedFactor * lightColour * reflectivity;
+        //float specularFactor = max(dot(reflectedLight, unitVectorToCamera),0.0);
+        float specularFactor = max(dot(unitNormal, halfVector),0.0);
+        float dampedFactor = pow(specularFactor, shineDamper);
+        totalSpecular += (dampedFactor * lightColour[i] * reflectivity) / attFactor;
+        totalDiffuse += (lightColour[i] * nDotL) / attFactor;
+    }
 
-    fragColor = (vec4(diffuse, 1.0f) + vec4(finalSpecular, 1.0)) * totalColour;
+    totalDiffuse = max(totalDiffuse, 0.2);
+
+    fragColor = (vec4(totalDiffuse, 1.0f) + vec4(totalSpecular, 1.0)) * totalColour;
     fragColor = mix(vec4(skyColour,1.0), fragColor, visibility);
     //fragColor = blendMapColour;
 }

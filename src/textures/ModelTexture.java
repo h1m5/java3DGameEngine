@@ -11,6 +11,18 @@ public class ModelTexture {
 
     private boolean hasTransparency = false;
 
+    private boolean useFakeLighting = false;
+
+    public int getNumberOfRows() {
+        return numberOfRows;
+    }
+
+    public void setNumberOfRows(int numberOfRows) {
+        this.numberOfRows = numberOfRows;
+    }
+
+    private int numberOfRows = 1;
+
     public boolean isUseFakeLighting() {
         return useFakeLighting;
     }
@@ -18,8 +30,6 @@ public class ModelTexture {
     public void setUseFakeLighting(boolean useFakeLighting) {
         this.useFakeLighting = useFakeLighting;
     }
-
-    private boolean useFakeLighting = false;
 
     public boolean isHasTransparency() {
         return hasTransparency;
