@@ -9,6 +9,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.vector.Matrix4f;
 import shaders.StaticShader;
 import shaders.TerrainShader;
+import skybox.SkyboxRenderer;
 import terrains.Terrain;
 
 import java.util.ArrayList;
@@ -39,13 +40,14 @@ public class MasterRenderer {
 
     private Map<TexturedModel, List<Entity>> entities = new HashMap<TexturedModel, List<Entity>>();
     private List<Terrain> terrains = new ArrayList<Terrain>();
+    private SkyboxRenderer skyboxRenderer;
 
-
-    public MasterRenderer(){
+    public MasterRenderer(Loader loader){
         enableCulling();
         createProjectionMatrix();
         renderer = new EntityRenderer(shader, projectionMatrix) ;
         terrainRenderer = new TerrainRenderer(terrainShader, projectionMatrix);
+        skyboxRenderer = new SkyboxRenderer(loader, projectionMatrix);
     }
 
     public static void enableCulling(){
@@ -72,6 +74,7 @@ public class MasterRenderer {
         terrainShader.loadViewMatrix(camera);
         terrainRenderer.render(terrains);
         terrainShader.stop();
+        skyboxRenderer.render(camera, RED, GREEN, BLUE);
         terrains.clear();
         entities.clear();
     }
@@ -90,6 +93,10 @@ public class MasterRenderer {
             newBatch.add(entity);
             entities.put(entityModel, newBatch);
         }
+    }
+
+    public Matrix4f getProjectionMatrix(){
+        return projectionMatrix;
     }
 
     public void cleanUp(){
