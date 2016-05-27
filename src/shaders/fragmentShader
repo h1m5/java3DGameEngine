@@ -15,6 +15,8 @@ uniform vec3 skyColour;
 
 out vec4 fragColor;
 
+const float levels = 3.0f;
+
 void main(void){
 
     vec3 unitNormal = normalize(norm);
@@ -28,15 +30,24 @@ void main(void){
         vec3 lDir = normalize(vertToLight[i]);
         float nDotL = max(dot(unitNormal, lDir), 0.1);
 
+        //diffuse cell shading calculation goes here
+        float level = floor(nDotL * levels);
+        //nDotL = level / levels;
+
         vec3 lightDirection = -lDir;
         vec3 reflectedLight = reflect(lightDirection, unitNormal);
         vec3 halfVector = normalize(vertToCamera + lDir);
 
         //float specularFactor = max(dot(reflectedLight, unitVectorToCamera),0.0);
         float specularFactor = max(dot(unitNormal, halfVector),0.0);
+
+        //specular cell shading calculation goes here
         float dampedFactor = pow(specularFactor, shineDamper);
+        level = floor(dampedFactor * levels);
+        //dampedFactor= level / levels;
         totalDiffuse += (lightColour[i] * nDotL) / attFactor;
         totalSpecular += (dampedFactor * lightColour[i] * reflectivity) / attFactor;
+        //totalSpecular = vec3(1.0, 1.0, 0.0);
     }
 
     totalDiffuse = max(totalDiffuse, 0.2);

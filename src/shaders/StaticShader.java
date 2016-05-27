@@ -5,6 +5,7 @@ import entities.Light;
 import org.lwjgl.util.vector.Matrix4f;
 import org.lwjgl.util.vector.Vector2f;
 import org.lwjgl.util.vector.Vector3f;
+import org.lwjgl.util.vector.Vector4f;
 import toolbox.Maths;
 
 import java.util.List;
@@ -32,6 +33,7 @@ public class StaticShader extends ShaderProgram{
     private int skyColour;
     private int numberOfRows;
     private int offset;
+    private int plane;
 
     public StaticShader() {
         super(VERTEX_FILE, FRAGMENT_FILE);
@@ -58,6 +60,7 @@ public class StaticShader extends ShaderProgram{
         skyColour = super.getUniformLocation("skyColour");
         numberOfRows = super.getUniformLocation("numberOfRows");
         offset = super.getUniformLocation("offset");
+        plane = super.getUniformLocation("plane");
 
         lightPosition = new int[MAX_LIGHTS];
         lightColour = new int[MAX_LIGHTS];
@@ -99,6 +102,10 @@ public class StaticShader extends ShaderProgram{
         Matrix4f viewMatrix = Maths.createViewMatrix(camera);
         super.loadMatrix(vMatrix, viewMatrix);
         super.loadVector(cameraPosition, camera.getPosition());
+    }
+
+    public void loadClipPlane(Vector4f vector){
+        super.loadVector(plane, vector);
     }
 
     public void loadProjectionMatrix(Matrix4f projection){

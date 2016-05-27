@@ -22,11 +22,16 @@ uniform vec2 offset;
 const float density = 0.0035;
 const float gradient = 5.0;
 
+uniform vec4 plane;
+
 void main(void){
 
     gl_Position = pMatrix * vMatrix * mMatrix * vec4(position, 1.0);
 
     vec4 worldPosition = mMatrix * vec4(position, 1.0f);
+    gl_ClipDistance[0] = dot(worldPosition, plane);
+
+
     vec4 positionRelativeToCam = vMatrix * worldPosition;
     //UV = textureCoords;
     UV = (textureCoords/numberOfRows) + offset;
